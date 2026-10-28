@@ -28,7 +28,7 @@ class FPLClient:
         self.timeout = timeout
         self.session = session or self._retrying_session()
         self.session.headers.setdefault(
-            "User-Agent", "fpl-market-data/2.1 (+local data refresh)"
+            "User-Agent", "fpl-engine-showcase/0.1"
         )
 
     @staticmethod
@@ -117,3 +117,4 @@ class FPLClient:
                 )
             summaries[player_id] = payload
         return summaries
+

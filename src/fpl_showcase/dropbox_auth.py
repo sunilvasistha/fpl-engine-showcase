@@ -14,7 +14,7 @@ import secrets
 from pathlib import Path
 from urllib.parse import urlencode
 
-from .errors import ShowcaseError as AuthoringError, require
+from .errors import ShowcaseError, require
 
 AUTH_SCHEMA = 1
 AUTH_PROVIDER = "dropbox"
@@ -69,9 +69,9 @@ def load_credentials(path: str | Path | None = None) -> dict[str, str | int]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        raise AuthoringError(f"Dropbox credential file not found: {path}") from None
+        raise ShowcaseError(f"Dropbox credential file not found: {path}") from None
     except (OSError, UnicodeError, json.JSONDecodeError):
-        raise AuthoringError(f"Dropbox credential file is unreadable: {path}") from None
+        raise ShowcaseError(f"Dropbox credential file is unreadable: {path}") from None
     return validate_credentials(value)
 
 
@@ -119,7 +119,7 @@ def _token_response(response, context: str) -> dict:
     try:
         value = response.json()
     except (ValueError, TypeError):
-        raise AuthoringError(f"invalid Dropbox OAuth {context} response") from None
+        raise ShowcaseError(f"invalid Dropbox OAuth {context} response") from None
     require(isinstance(value, dict), f"invalid Dropbox OAuth {context} response")
     return value
 
@@ -140,7 +140,7 @@ def refresh_access_token(credentials: dict, *, session=None, timeout: float = 30
     try:
         response = client.post(TOKEN_URL, data=data, timeout=timeout, allow_redirects=False)
     except Exception:
-        raise AuthoringError("Dropbox OAuth refresh failed") from None
+        raise ShowcaseError("Dropbox OAuth refresh failed") from None
     value = _token_response(response, "refresh")
     token = _nonempty(value.get("access_token"), "OAuth access token")
     token_type = str(value.get("token_type") or "bearer").casefold()
@@ -195,7 +195,7 @@ def exchange_authorization_code(
             allow_redirects=False,
         )
     except Exception:
-        raise AuthoringError("Dropbox OAuth authorization exchange failed") from None
+        raise ShowcaseError("Dropbox OAuth authorization exchange failed") from None
     value = _token_response(response, "authorization exchange")
     result = {
         "access_token": _nonempty(value.get("access_token"), "OAuth access token"),
@@ -204,4 +204,5 @@ def exchange_authorization_code(
     token_type = str(value.get("token_type") or "bearer").casefold()
     require(token_type == "bearer", "unexpected Dropbox OAuth token type")
     return result
+
 

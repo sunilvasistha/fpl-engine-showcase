@@ -17,7 +17,7 @@ from fpl_showcase.dropbox_auth import (
     save_credentials,
 )
 from fpl_showcase.publication import DropboxTransport
-from fpl_showcase.errors import ShowcaseError as AuthoringError
+from fpl_showcase.errors import ShowcaseError
 
 
 class Response:
@@ -62,7 +62,7 @@ def test_invalid_credential_file_fails_closed_without_echoing_secret(tmp_path):
     path = tmp_path / "dropbox-auth.json"
     secret = "do-not-echo-this-secret"
     path.write_text(json.dumps({"schema_version": 1, "provider": "dropbox", "refresh_token": secret}), encoding="utf-8")
-    with pytest.raises(AuthoringError) as exc:
+    with pytest.raises(ShowcaseError) as exc:
         load_credentials(path)
     assert secret not in str(exc.value)
 
@@ -122,7 +122,7 @@ def test_refresh_mints_short_lived_access_token_without_rotating_persisted_secre
 def test_refresh_failure_does_not_echo_refresh_token():
     secret = "very-sensitive-refresh-token"
     session = Session([Response(status_code=400, payload={"error": "invalid_grant", "secret": secret})])
-    with pytest.raises(AuthoringError) as exc:
+    with pytest.raises(ShowcaseError) as exc:
         refresh_access_token({
             "schema_version": 1,
             "provider": "dropbox",
@@ -154,6 +154,7 @@ def test_transport_legacy_environment_fallback_still_works(tmp_path, monkeypatch
 
 def test_explicit_missing_auth_file_does_not_silently_ignore_configuration(tmp_path, monkeypatch):
     monkeypatch.setenv("DROPBOX_ACCESS_TOKEN", "legacy-access")
-    with pytest.raises(AuthoringError, match="credential file not found"):
+    with pytest.raises(ShowcaseError, match="credential file not found"):
         DropboxTransport(allow_network=True, auth_file=tmp_path / "missing.json", session=Session([]))
+
 
