@@ -1,0 +1,17 @@
+{
+  "gameweek": 10,
+  "players": [
+    {
+      "id": 101,
+      "name": "Example Forward",
+      "position": "FWD",
+      "price": 7.5
+    },
+    {
+      "id": 202,
+      "name": "Example Midfielder",
+      "position": "MID",
+      "price": 8.0
+    }
+  ]
+}
